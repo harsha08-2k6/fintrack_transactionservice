@@ -211,24 +211,6 @@ public class EmailServiceImpl implements EmailService {
         return sb.toString();
     }
 
-                // Non-retryable errors
-                if ("AUTH_FAILURE".equals(category) || "INVALID_RECIPIENT".equals(category) || attempt >= maxAttempts) {
-                    return EmailSendResult.failed(category, safeMessage, attempt);
-                }
-
-                // Transient failure retry delay
-                try {
-                    Thread.sleep(250L * attempt);
-                } catch (InterruptedException ie) {
-                    Thread.currentThread().interrupt();
-                    return EmailSendResult.failed("INTERRUPTED", "Retry interrupted", attempt);
-                }
-            }
-        }
-
-        return EmailSendResult.failed("TIMEOUT", "Max retry attempts exhausted without successful SMTP submission", maxAttempts);
-    }
-
     private String categorizeError(Throwable ex) {
         if (ex == null) return "UNKNOWN";
 
