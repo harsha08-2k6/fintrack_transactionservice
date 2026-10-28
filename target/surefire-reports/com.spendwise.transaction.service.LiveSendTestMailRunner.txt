@@ -1,0 +1,4 @@
+-------------------------------------------------------------------------------
+Test set: com.spendwise.transaction.service.LiveSendTestMailRunner
+-------------------------------------------------------------------------------
+Tests run: 1, Failures: 0, Errors: 0, Skipped: 0, Time elapsed: 7.153 s -- in com.spendwise.transaction.service.LiveSendTestMailRunner

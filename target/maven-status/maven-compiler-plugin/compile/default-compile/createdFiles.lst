@@ -1,0 +1,11 @@
+com\spendwise\transaction\entity\TransactionType.class
+com\spendwise\transaction\entity\Transaction.class
+com\spendwise\transaction\TransactionApplication.class
+com\spendwise\transaction\repository\TransactionRepository.class
+com\spendwise\transaction\client\CategoryClient.class
+com\spendwise\transaction\controller\TransactionController.class
+com\spendwise\transaction\dto\CategoryDto.class
+com\spendwise\transaction\dto\TransactionResponse.class
+com\spendwise\transaction\dto\TransactionRequest.class
+com\spendwise\transaction\service\impl\TransactionServiceImpl.class
+com\spendwise\transaction\service\TransactionService.class
