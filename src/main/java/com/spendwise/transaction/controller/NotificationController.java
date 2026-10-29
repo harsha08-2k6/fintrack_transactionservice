@@ -35,7 +35,7 @@ public class NotificationController {
 
     @GetMapping
     public ResponseEntity<List<InAppNotificationDto>> getNotifications(
-            @RequestHeader(value = "X-User-Id", required = false) Long userId,
+            @RequestHeader(value = "X-Authenticated-User-Id", required = false) Long userId,
             @RequestParam(value = "category", required = false, defaultValue = "ALL") String category) {
         validateUser(userId);
         List<InAppNotificationDto> list = notificationService.getInAppNotifications(userId, category);
@@ -44,7 +44,7 @@ public class NotificationController {
 
     @GetMapping("/unread-count")
     public ResponseEntity<Map<String, Long>> getUnreadCount(
-            @RequestHeader(value = "X-User-Id", required = false) Long userId) {
+            @RequestHeader(value = "X-Authenticated-User-Id", required = false) Long userId) {
         validateUser(userId);
         long count = notificationService.getUnreadCount(userId);
         return ResponseEntity.ok(Map.of("count", count));
@@ -52,7 +52,7 @@ public class NotificationController {
 
     @PatchMapping("/{id}/read")
     public ResponseEntity<Void> markAsRead(
-            @RequestHeader(value = "X-User-Id", required = false) Long userId,
+            @RequestHeader(value = "X-Authenticated-User-Id", required = false) Long userId,
             @PathVariable("id") String id) {
         validateUser(userId);
         notificationService.markAsRead(userId, id);
@@ -61,7 +61,7 @@ public class NotificationController {
 
     @PatchMapping("/read-all")
     public ResponseEntity<Void> markAllAsRead(
-            @RequestHeader(value = "X-User-Id", required = false) Long userId) {
+            @RequestHeader(value = "X-Authenticated-User-Id", required = false) Long userId) {
         validateUser(userId);
         notificationService.markAllAsRead(userId);
         return ResponseEntity.noContent().build();
@@ -69,7 +69,7 @@ public class NotificationController {
 
     @DeleteMapping("/{id}")
     public ResponseEntity<Void> dismissNotification(
-            @RequestHeader(value = "X-User-Id", required = false) Long userId,
+            @RequestHeader(value = "X-Authenticated-User-Id", required = false) Long userId,
             @PathVariable("id") String id) {
         validateUser(userId);
         notificationService.dismissNotification(userId, id);
@@ -78,7 +78,7 @@ public class NotificationController {
 
     @DeleteMapping
     public ResponseEntity<Void> clearAllNotifications(
-            @RequestHeader(value = "X-User-Id", required = false) Long userId) {
+            @RequestHeader(value = "X-Authenticated-User-Id", required = false) Long userId) {
         validateUser(userId);
         notificationService.clearAllNotifications(userId);
         return ResponseEntity.noContent().build();
@@ -90,7 +90,7 @@ public class NotificationController {
 
     @GetMapping("/preferences")
     public ResponseEntity<NotificationPreferenceDto> getPreferences(
-            @RequestHeader(value = "X-User-Id", required = false) Long userId) {
+            @RequestHeader(value = "X-Authenticated-User-Id", required = false) Long userId) {
         validateUser(userId);
         NotificationPreferenceDto prefs = notificationService.getPreferences(userId);
         return ResponseEntity.ok(prefs);
@@ -98,7 +98,7 @@ public class NotificationController {
 
     @PutMapping("/preferences")
     public ResponseEntity<NotificationPreferenceDto> updatePreferences(
-            @RequestHeader(value = "X-User-Id", required = false) Long userId,
+            @RequestHeader(value = "X-Authenticated-User-Id", required = false) Long userId,
             @RequestBody NotificationPreferenceDto dto) {
         validateUser(userId);
         NotificationPreferenceDto updated = notificationService.updatePreferences(userId, dto);
@@ -111,7 +111,7 @@ public class NotificationController {
 
     @GetMapping("/deliveries")
     public ResponseEntity<List<NotificationDeliveryDto>> getDeliveries(
-            @RequestHeader(value = "X-User-Id", required = false) Long userId) {
+            @RequestHeader(value = "X-Authenticated-User-Id", required = false) Long userId) {
         validateUser(userId);
         List<NotificationDeliveryDto> deliveries = notificationService.getDeliveryHistory(userId);
         return ResponseEntity.ok(deliveries);
@@ -123,7 +123,7 @@ public class NotificationController {
 
     @PostMapping("/test-email")
     public ResponseEntity<EmailSendResult> sendTestEmail(
-            @RequestHeader(value = "X-User-Id", required = false) Long userId,
+            @RequestHeader(value = "X-Authenticated-User-Id", required = false) Long userId,
             @RequestBody(required = false) TestEmailRequest request) {
         validateUser(userId);
         String note = request != null ? request.getCustomNote() : null;
@@ -137,11 +137,11 @@ public class NotificationController {
 
     @PostMapping("/events/goal")
     public ResponseEntity<Map<String, String>> triggerGoalEvent(
-            @RequestHeader(value = "X-User-Id", required = false) Long userId,
+            @RequestHeader(value = "X-Authenticated-User-Id", required = false) Long userId,
             @Valid @RequestBody SavingsGoalEventRequest request) {
         validateUser(userId);
-        notificationService.processSavingsGoalEvent(userId, request);
-        return ResponseEntity.status(HttpStatus.ACCEPTED).body(Map.of("status", "ACCEPTED", "message", "Savings goal event queued for processing"));
+        throw new ResponseStatusException(HttpStatus.NOT_IMPLEMENTED,
+                "Savings goal notifications require a persisted savings goal event");
     }
 
     // ==========================================
@@ -150,7 +150,7 @@ public class NotificationController {
 
     @PostMapping("/monthly-summary")
     public ResponseEntity<Map<String, String>> triggerMonthlySummary(
-            @RequestHeader(value = "X-User-Id", required = false) Long userId,
+            @RequestHeader(value = "X-Authenticated-User-Id", required = false) Long userId,
             @RequestParam(value = "yearMonth", required = false) String yearMonthStr) {
         validateUser(userId);
         YearMonth ym = (yearMonthStr != null && !yearMonthStr.isBlank())

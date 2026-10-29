@@ -270,4 +270,41 @@ class NotificationServiceImplTest {
         // Must complete without throwing exception
         assertDoesNotThrow(() -> notificationService.processExpenseCreated(expense));
     }
+
+    @Test
+    @DisplayName("Notification actions use the authenticated user's ownership scope")
+    void testNotificationActionsAreUserScoped() {
+        Long authenticatedUserId = 7L;
+        String notificationId = "transaction-expense-501";
+
+        notificationService.markAsRead(authenticatedUserId, notificationId);
+        notificationService.dismissNotification(authenticatedUserId, notificationId);
+
+        verify(inAppRepository).findByIdAndUserId(notificationId, authenticatedUserId);
+        verify(inAppRepository).deleteByIdAndUserId(notificationId, authenticatedUserId);
+        verify(inAppRepository, never()).deleteById(notificationId);
+    }
+
+    @Test
+    @DisplayName("Transaction notifications are deterministic and are not duplicated")
+    void testTransactionNotificationDeduplicatesByTransactionId() {
+        Long userId = 8L;
+        Transaction expense = new Transaction();
+        expense.setId(501L);
+        expense.setUserId(userId);
+        expense.setTitle("Groceries");
+        expense.setAmount(new BigDecimal("125.00"));
+        expense.setType(TransactionType.EXPENSE);
+
+        NotificationPreference pref = new NotificationPreference(userId);
+        pref.setExpenseConfirmationEnabled(true);
+        when(preferenceRepository.findByUserId(userId)).thenReturn(Optional.of(pref));
+        when(inAppRepository.existsById("transaction-expense-501")).thenReturn(true);
+
+        notificationService.processExpenseCreated(expense);
+
+        verify(inAppRepository).existsById("transaction-expense-501");
+        verify(inAppRepository, never()).save(any(InAppNotification.class));
+        verifyNoInteractions(categoryClient, transactionRepository);
+    }
 }

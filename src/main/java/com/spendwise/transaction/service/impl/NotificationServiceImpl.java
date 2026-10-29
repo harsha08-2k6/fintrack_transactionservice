@@ -207,6 +207,15 @@ public class NotificationServiceImpl implements NotificationService {
             Long userId = expense.getUserId();
             NotificationPreference pref = getOrCreatePreference(userId);
 
+            if (pref.isExpenseConfirmationEnabled()) {
+                saveInAppNotification("transaction-expense-" + expense.getId(), userId,
+                        "Expense recorded: " + expense.getTitle(),
+                        "Recorded " + templateBuilder.formatInr(expense.getAmount()) + " as an expense.",
+                        "TRANSACTION", "INFO", "expenses",
+                        String.format("{\"transactionId\":%d,\"amount\":%.2f}",
+                                expense.getId(), expense.getAmount().doubleValue()));
+            }
+
             // 1. Expense confirmation email (if opted-in)
             if (pref.isEmailNotificationsEnabled() && pref.isExpenseConfirmationEnabled()) {
                 sendExpenseConfirmationEmail(expense);
@@ -329,7 +338,8 @@ public class NotificationServiceImpl implements NotificationService {
         }
 
         // 1. Create In-App Notification
-        saveInAppNotification(userId, alertTitle, alertMessage, "BUDGET", alertLevel, "categories",
+        saveInAppNotification("budget-" + userId + "-" + categoryId + "-" + periodKey + "-" + thresholdTrigger,
+                userId, alertTitle, alertMessage, "BUDGET", alertLevel, "categories",
                 String.format("{\"categoryId\":%d,\"spent\":%.2f,\"limit\":%.2f,\"period\":\"%s\"}",
                         categoryId, currentMonthSpend.doubleValue(), limit.doubleValue(), periodKey));
 
@@ -361,10 +371,15 @@ public class NotificationServiceImpl implements NotificationService {
             NotificationPreference pref = getOrCreatePreference(userId);
 
             // In-app notification
-            String formattedAmt = templateBuilder.formatInr(income.getAmount());
-            saveInAppNotification(userId, "Income Recorded: " + income.getTitle(),
-                    "Received +" + formattedAmt + " via " + income.getPaymentMethod(),
-                    "TRANSACTION", "SUCCESS", "transactions", null);
+            if (pref.isIncomeNotificationEnabled()) {
+                String formattedAmt = templateBuilder.formatInr(income.getAmount());
+                saveInAppNotification("transaction-income-" + income.getId(), userId,
+                        "Income recorded: " + income.getTitle(),
+                        "Received +" + formattedAmt + " via " + income.getPaymentMethod(),
+                        "TRANSACTION", "SUCCESS", "transactions",
+                        String.format("{\"transactionId\":%d,\"amount\":%.2f}",
+                                income.getId(), income.getAmount().doubleValue()));
+            }
 
             // Optional email notification if opted-in
             if (pref.isEmailNotificationsEnabled() && pref.isIncomeNotificationEnabled()) {
@@ -594,9 +609,18 @@ public class NotificationServiceImpl implements NotificationService {
 
     private void saveInAppNotification(Long userId, String title, String message, String category,
                                       String severity, String actionUrl, String metadataJson) {
+        saveInAppNotification(null, userId, title, message, category, severity, actionUrl, metadataJson);
+    }
+
+    private void saveInAppNotification(String id, Long userId, String title, String message, String category,
+                                      String severity, String actionUrl, String metadataJson) {
         try {
-            String id = "notif-" + System.currentTimeMillis() + "-" + UUID.randomUUID().toString().substring(0, 4);
-            InAppNotification n = new InAppNotification(id, userId, title, message, category, severity, actionUrl, metadataJson);
+            String notificationId = id != null ? id
+                    : "notif-" + System.currentTimeMillis() + "-" + UUID.randomUUID().toString().substring(0, 4);
+            if (id != null && inAppRepository.existsById(id)) {
+                return;
+            }
+            InAppNotification n = new InAppNotification(notificationId, userId, title, message, category, severity, actionUrl, metadataJson);
             inAppRepository.save(n);
         } catch (Exception e) {
             log.warn("Could not save in-app notification: {}", e.getMessage());
