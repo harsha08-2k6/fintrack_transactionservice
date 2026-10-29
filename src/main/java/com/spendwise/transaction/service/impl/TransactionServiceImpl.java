@@ -10,8 +10,10 @@ import com.spendwise.transaction.repository.TransactionRepository;
 import com.spendwise.transaction.service.TransactionService;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
+import org.springframework.http.HttpStatus;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
+import org.springframework.web.server.ResponseStatusException;
 
 import java.math.BigDecimal;
 import java.time.LocalDate;
@@ -72,10 +74,10 @@ public class TransactionServiceImpl implements TransactionService {
     @Transactional(readOnly = true)
     public TransactionResponse getTransactionById(Long userId, Long transactionId) {
         Transaction transaction = transactionRepository.findById(transactionId)
-                .orElseThrow(() -> new RuntimeException("Transaction not found with id: " + transactionId));
+                .orElseThrow(() -> new ResponseStatusException(HttpStatus.NOT_FOUND, "Transaction not found with id: " + transactionId));
 
         if (!transaction.getUserId().equals(userId)) {
-            throw new RuntimeException("Unauthorized access to transaction");
+            throw new ResponseStatusException(HttpStatus.FORBIDDEN, "Unauthorized access to transaction");
         }
 
         return mapToResponse(transaction);
@@ -106,10 +108,10 @@ public class TransactionServiceImpl implements TransactionService {
     @Override
     public TransactionResponse updateTransaction(Long userId, Long transactionId, TransactionRequest request) {
         Transaction transaction = transactionRepository.findById(transactionId)
-                .orElseThrow(() -> new RuntimeException("Transaction not found with id: " + transactionId));
+                .orElseThrow(() -> new ResponseStatusException(HttpStatus.NOT_FOUND, "Transaction not found with id: " + transactionId));
 
         if (!transaction.getUserId().equals(userId)) {
-            throw new RuntimeException("Unauthorized access to transaction");
+            throw new ResponseStatusException(HttpStatus.FORBIDDEN, "Unauthorized access to transaction");
         }
 
         transaction.setTitle(request.getTitle());
@@ -137,10 +139,10 @@ public class TransactionServiceImpl implements TransactionService {
     @Override
     public void deleteTransaction(Long userId, Long transactionId) {
         Transaction transaction = transactionRepository.findById(transactionId)
-                .orElseThrow(() -> new RuntimeException("Transaction not found with id: " + transactionId));
+                .orElseThrow(() -> new ResponseStatusException(HttpStatus.NOT_FOUND, "Transaction not found with id: " + transactionId));
 
         if (!transaction.getUserId().equals(userId)) {
-            throw new RuntimeException("Unauthorized access to transaction");
+            throw new ResponseStatusException(HttpStatus.FORBIDDEN, "Unauthorized access to transaction");
         }
 
         transactionRepository.delete(transaction);
