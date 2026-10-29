@@ -43,12 +43,12 @@ class TransactionControllerSecurityTest {
     @DisplayName("Direct access without internal gateway key returns 403 Forbidden")
     void testDirectAccessWithoutGatewayKeyRejected() throws Exception {
         mockMvc.perform(get("/api/transactions")
-                        .header("X-User-Id", "10"))
+                        .header("X-Authenticated-User-Id", "10"))
                 .andExpect(status().isForbidden());
     }
 
     @Test
-    @DisplayName("Request with valid gateway key but missing X-User-Id returns 401 Unauthorized")
+    @DisplayName("Request with valid gateway key but missing verified user identity returns 401 Unauthorized")
     void testMissingUserIdReturns401() throws Exception {
         mockMvc.perform(get("/api/transactions")
                         .header("X-Internal-Gateway-Key", "secret-internal-key-test"))
@@ -56,15 +56,14 @@ class TransactionControllerSecurityTest {
     }
 
     @Test
-    @DisplayName("Cross-tenant tampering: user accessing another user's transaction returns 403 Forbidden")
+    @DisplayName("Cross-tenant access: verified user accessing another user's transaction returns 403 Forbidden")
     void testCrossTenantTamperingReturns403() throws Exception {
         when(transactionService.getTransactionById(10L, 999L))
                 .thenThrow(new ResponseStatusException(HttpStatus.FORBIDDEN, "Unauthorized access to transaction"));
 
         mockMvc.perform(get("/api/transactions/999")
                         .header("X-Internal-Gateway-Key", "secret-internal-key-test")
-                        .header("X-User-Id", "10"))
+                        .header("X-Authenticated-User-Id", "10"))
                 .andExpect(status().isForbidden());
     }
 }
-

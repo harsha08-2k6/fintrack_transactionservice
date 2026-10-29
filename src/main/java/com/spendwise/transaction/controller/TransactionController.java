@@ -37,7 +37,7 @@ public class TransactionController {
 
     @PostMapping("/api/transactions")
     public ResponseEntity<TransactionResponse> createTransaction(
-            @RequestHeader(value = "X-User-Id", required = false) Long userId,
+            @RequestHeader(value = "X-Authenticated-User-Id", required = false) Long userId,
             @Valid @RequestBody TransactionRequest request) {
         validateUser(userId);
         TransactionResponse response = transactionService.createTransaction(userId, request);
@@ -46,7 +46,7 @@ public class TransactionController {
 
     @GetMapping("/api/transactions")
     public ResponseEntity<List<TransactionResponse>> getTransactions(
-            @RequestHeader(value = "X-User-Id", required = false) Long userId,
+            @RequestHeader(value = "X-Authenticated-User-Id", required = false) Long userId,
             @RequestParam(value = "type", required = false) TransactionType type,
             @RequestParam(value = "categoryId", required = false) Long categoryId,
             @RequestParam(value = "startDate", required = false) @DateTimeFormat(iso = DateTimeFormat.ISO.DATE) LocalDate startDate,
@@ -58,7 +58,7 @@ public class TransactionController {
 
     @GetMapping("/api/transactions/{id}")
     public ResponseEntity<TransactionResponse> getTransactionById(
-            @RequestHeader(value = "X-User-Id", required = false) Long userId,
+            @RequestHeader(value = "X-Authenticated-User-Id", required = false) Long userId,
             @PathVariable("id") Long id) {
         validateUser(userId);
         TransactionResponse response = transactionService.getTransactionById(userId, id);
@@ -67,7 +67,7 @@ public class TransactionController {
 
     @PutMapping("/api/transactions/{id}")
     public ResponseEntity<TransactionResponse> updateTransaction(
-            @RequestHeader(value = "X-User-Id", required = false) Long userId,
+            @RequestHeader(value = "X-Authenticated-User-Id", required = false) Long userId,
             @PathVariable("id") Long id,
             @Valid @RequestBody TransactionRequest request) {
         validateUser(userId);
@@ -77,7 +77,7 @@ public class TransactionController {
 
     @DeleteMapping("/api/transactions/{id}")
     public ResponseEntity<Void> deleteTransaction(
-            @RequestHeader(value = "X-User-Id", required = false) Long userId,
+            @RequestHeader(value = "X-Authenticated-User-Id", required = false) Long userId,
             @PathVariable("id") Long id) {
         validateUser(userId);
         transactionService.deleteTransaction(userId, id);
@@ -90,7 +90,7 @@ public class TransactionController {
 
     @GetMapping({"/api/income", "/api/transactions/income"})
     public ResponseEntity<List<TransactionResponse>> getIncome(
-            @RequestHeader(value = "X-User-Id", required = false) Long userId,
+            @RequestHeader(value = "X-Authenticated-User-Id", required = false) Long userId,
             @RequestParam(value = "startDate", required = false) @DateTimeFormat(iso = DateTimeFormat.ISO.DATE) LocalDate startDate,
             @RequestParam(value = "endDate", required = false) @DateTimeFormat(iso = DateTimeFormat.ISO.DATE) LocalDate endDate) {
         validateUser(userId);
@@ -100,7 +100,7 @@ public class TransactionController {
 
     @PostMapping({"/api/income", "/api/transactions/income"})
     public ResponseEntity<TransactionResponse> createIncome(
-            @RequestHeader(value = "X-User-Id", required = false) Long userId,
+            @RequestHeader(value = "X-Authenticated-User-Id", required = false) Long userId,
             @Valid @RequestBody TransactionRequest request) {
         validateUser(userId);
         request.setType(TransactionType.INCOME);
@@ -114,7 +114,7 @@ public class TransactionController {
 
     @GetMapping({"/api/expenses", "/api/transactions/expenses"})
     public ResponseEntity<List<TransactionResponse>> getExpenses(
-            @RequestHeader(value = "X-User-Id", required = false) Long userId,
+            @RequestHeader(value = "X-Authenticated-User-Id", required = false) Long userId,
             @RequestParam(value = "categoryId", required = false) Long categoryId,
             @RequestParam(value = "startDate", required = false) @DateTimeFormat(iso = DateTimeFormat.ISO.DATE) LocalDate startDate,
             @RequestParam(value = "endDate", required = false) @DateTimeFormat(iso = DateTimeFormat.ISO.DATE) LocalDate endDate) {
@@ -125,7 +125,7 @@ public class TransactionController {
 
     @PostMapping({"/api/expenses", "/api/transactions/expenses"})
     public ResponseEntity<TransactionResponse> createExpense(
-            @RequestHeader(value = "X-User-Id", required = false) Long userId,
+            @RequestHeader(value = "X-Authenticated-User-Id", required = false) Long userId,
             @Valid @RequestBody TransactionRequest request) {
         validateUser(userId);
         request.setType(TransactionType.EXPENSE);
@@ -135,7 +135,7 @@ public class TransactionController {
 
     @GetMapping({"/api/expenses/{id}"})
     public ResponseEntity<TransactionResponse> getExpenseById(
-            @RequestHeader(value = "X-User-Id", required = false) Long userId,
+            @RequestHeader(value = "X-Authenticated-User-Id", required = false) Long userId,
             @PathVariable("id") Long id) {
         validateUser(userId);
         TransactionResponse response = transactionService.getTransactionById(userId, id);
@@ -144,7 +144,7 @@ public class TransactionController {
 
     @PutMapping({"/api/expenses/{id}"})
     public ResponseEntity<TransactionResponse> updateExpense(
-            @RequestHeader(value = "X-User-Id", required = false) Long userId,
+            @RequestHeader(value = "X-Authenticated-User-Id", required = false) Long userId,
             @PathVariable("id") Long id,
             @Valid @RequestBody TransactionRequest request) {
         validateUser(userId);
@@ -155,7 +155,7 @@ public class TransactionController {
 
     @DeleteMapping({"/api/expenses/{id}"})
     public ResponseEntity<Void> deleteExpense(
-            @RequestHeader(value = "X-User-Id", required = false) Long userId,
+            @RequestHeader(value = "X-Authenticated-User-Id", required = false) Long userId,
             @PathVariable("id") Long id) {
         validateUser(userId);
         transactionService.deleteTransaction(userId, id);
