@@ -30,6 +30,12 @@ public class InternalGatewaySecurityFilter extends OncePerRequestFilter {
             return;
         }
 
+        if ("/".equals(path)) {
+            response.setContentType("application/json");
+            response.getWriter().write("{\"status\":\"UP\",\"service\":\"Transaction Service\",\"message\":\"Service is running. Use the API Gateway for application requests.\"}");
+            return;
+        }
+
         if (internalGatewayKey != null && !internalGatewayKey.isBlank()) {
             String incomingKey = request.getHeader("X-Internal-Gateway-Key");
             if (incomingKey == null || !internalGatewayKey.equals(incomingKey.trim())) {
@@ -43,4 +49,3 @@ public class InternalGatewaySecurityFilter extends OncePerRequestFilter {
         filterChain.doFilter(request, response);
     }
 }
-
