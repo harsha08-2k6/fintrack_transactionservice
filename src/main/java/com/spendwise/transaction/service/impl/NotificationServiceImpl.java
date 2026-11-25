@@ -103,6 +103,15 @@ public class NotificationServiceImpl implements NotificationService {
         } else {
             list = inAppRepository.findByUserIdOrderByCreatedAtDesc(userId);
         }
+
+        if (list.isEmpty() && (category == null || "ALL".equalsIgnoreCase(category.trim()))) {
+            saveInAppNotification("welcome-" + userId, userId,
+                    "FinTrack Notifications Active",
+                    "Real-time expense alerts, category budget warnings, and transaction receipts are operational.",
+                    "SECURITY", "SUCCESS", "dashboard", null);
+            list = inAppRepository.findByUserIdOrderByCreatedAtDesc(userId);
+        }
+
         return list.stream().map(this::mapInAppToDto).collect(Collectors.toList());
     }
 
@@ -207,14 +216,13 @@ public class NotificationServiceImpl implements NotificationService {
             Long userId = expense.getUserId();
             NotificationPreference pref = getOrCreatePreference(userId);
 
-            if (pref.isExpenseConfirmationEnabled()) {
-                saveInAppNotification("transaction-expense-" + expense.getId(), userId,
-                        "Expense recorded: " + expense.getTitle(),
-                        "Recorded " + templateBuilder.formatInr(expense.getAmount()) + " as an expense.",
-                        "TRANSACTION", "INFO", "expenses",
-                        String.format("{\"transactionId\":%d,\"amount\":%.2f}",
-                                expense.getId(), expense.getAmount().doubleValue()));
-            }
+            // In-app notification for recorded expense
+            saveInAppNotification("transaction-expense-" + expense.getId(), userId,
+                    "Expense recorded: " + expense.getTitle(),
+                    "Recorded " + templateBuilder.formatInr(expense.getAmount()) + " as an expense.",
+                    "TRANSACTION", "INFO", "expenses",
+                    String.format("{\"transactionId\":%d,\"amount\":%.2f}",
+                            expense.getId(), expense.getAmount().doubleValue()));
 
             // 1. Expense confirmation email (if opted-in)
             if (pref.isEmailNotificationsEnabled() && pref.isExpenseConfirmationEnabled()) {
@@ -284,8 +292,8 @@ public class NotificationServiceImpl implements NotificationService {
         LocalDate start = ym.atDay(1);
         LocalDate end = ym.atEndOfMonth();
 
-        BigDecimal currentMonthSpend = transactionRepository.sumAmountByUserIdAndTypeAndDateRange(
-                userId, TransactionType.EXPENSE, start, end);
+        BigDecimal currentMonthSpend = transactionRepository.sumAmountByUserIdAndCategoryIdAndTypeAndDateRange(
+                userId, categoryId, TransactionType.EXPENSE, start, end);
         if (currentMonthSpend == null) currentMonthSpend = BigDecimal.ZERO;
 
         BigDecimal remaining = limit.subtract(currentMonthSpend);
@@ -370,16 +378,14 @@ public class NotificationServiceImpl implements NotificationService {
             Long userId = income.getUserId();
             NotificationPreference pref = getOrCreatePreference(userId);
 
-            // In-app notification
-            if (pref.isIncomeNotificationEnabled()) {
-                String formattedAmt = templateBuilder.formatInr(income.getAmount());
-                saveInAppNotification("transaction-income-" + income.getId(), userId,
-                        "Income recorded: " + income.getTitle(),
-                        "Received +" + formattedAmt + " via " + income.getPaymentMethod(),
-                        "TRANSACTION", "SUCCESS", "transactions",
-                        String.format("{\"transactionId\":%d,\"amount\":%.2f}",
-                                income.getId(), income.getAmount().doubleValue()));
-            }
+            // In-app notification for recorded income
+            String formattedAmt = templateBuilder.formatInr(income.getAmount());
+            saveInAppNotification("transaction-income-" + income.getId(), userId,
+                    "Income recorded: " + income.getTitle(),
+                    "Received +" + formattedAmt + " via " + income.getPaymentMethod(),
+                    "TRANSACTION", "SUCCESS", "income",
+                    String.format("{\"transactionId\":%d,\"amount\":%.2f}",
+                            income.getId(), income.getAmount().doubleValue()));
 
             // Optional email notification if opted-in
             if (pref.isEmailNotificationsEnabled() && pref.isIncomeNotificationEnabled()) {

@@ -49,7 +49,7 @@ public class NotificationController {
         return ResponseEntity.ok(Map.of("count", count));
     }
 
-    @PatchMapping("/{id}/read")
+    @RequestMapping(value = "/{id}/read", method = {RequestMethod.PATCH, RequestMethod.POST, RequestMethod.PUT})
     public ResponseEntity<Void> markAsRead(
             @RequestHeader(value = "X-Authenticated-User-Id", required = false) Long userId,
             @PathVariable("id") String id) {
@@ -58,7 +58,7 @@ public class NotificationController {
         return ResponseEntity.noContent().build();
     }
 
-    @PatchMapping("/read-all")
+    @RequestMapping(value = "/read-all", method = {RequestMethod.PATCH, RequestMethod.POST, RequestMethod.PUT})
     public ResponseEntity<Void> markAllAsRead(
             @RequestHeader(value = "X-Authenticated-User-Id", required = false) Long userId) {
         validateUser(userId);
